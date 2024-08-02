@@ -34,8 +34,9 @@ jobs:
         trigger_info=$(echo "Triggered by: ${{ github.event_name }} on ${{ github.ref }}" || result=$?)
         commit_msg=$GITHUB_COMMIT_MESSAGE
         commit_url="$GITHUB_REPO_URL/commit/$GITHUB_SHA_SHORT"
+        changed_files=$(git show | grep -a '+++ b/packs/UILib/' | sed 's/+++ b\//- /')
         echo "COMMIT_MESSAGE<<EOFMARKER" >> ${GITHUB_ENV}
-        echo "New changes in UILib:\n$trigger_info\n${{ github.event.commits[0].author.name }} (${{ github.event.commits[0].author.email }})\n$commit_url\n\n$commit_msg\n\nChanged files:\n" >> ${GITHUB_ENV}
+        echo "New changes in UILib:\n$trigger_info\n${{ github.event.commits[0].author.name }} (${{ github.event.commits[0].author.email }})\n$commit_url\n\n$commit_msg\n\nChanged files:\n$changed_files" >> ${GITHUB_ENV}
         git show | grep -a '+++ b/packs/UILib/' | sed 's/+++ b\//- /' >> ${GITHUB_ENV}
         echo "EOFMARKER" >> ${GITHUB_ENV}
     - name: Print info
