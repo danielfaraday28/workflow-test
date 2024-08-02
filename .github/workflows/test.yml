@@ -1,0 +1,43 @@
+name: Notifications for changes in UILib
+
+on:
+  push:
+    branches:
+      - master
+      - main
+      - ver/*
+      - dev/*
+    paths:
+      - 'packs/UILib/**'
+
+jobs:
+  push-notify:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Debug
+      run: |
+        echo "Triggered by: ${{ github.event_name }}"
+        echo "Branch ref: ${{ github.ref }}"
+        echo "Head sha: ${{ github.sha }}"
+        echo "Base sha: ${{ github.base_ref }}"
+    - uses: actions/checkout@v4
+      with:
+        sparse-checkout: |
+          packs/UILib
+    - name: Prepare
+      env:
+        GITHUB_REPO_URL: ${{ github.event.repository.html_url }}
+        GITHUB_SHA_SHORT: ${{ github.sha }}
+        GITHUB_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+      run: |
+        trigger_info=$(echo "Triggered by: ${{ github.event_name }} on ${{ github.ref }}" || result=$?)
+        commit_msg=$GITHUB_COMMIT_MESSAGE
+        commit_url="$GITHUB_REPO_URL/commit/$GITHUB_SHA_SHORT"
+        echo "COMMIT_MESSAGE<<EOFMARKER" >> ${GITHUB_ENV}
+        echo "New changes in UILib:\n$trigger_info\n${{ github.event.commits[0].author.name }} (${{ github.event.commits[0].author.email }})\n$commit_url\n\n$commit_msg\n\nChanged files:\n" >> ${GITHUB_ENV}
+        git show | grep -a '+++ b/packs/UILib/' | sed 's/+++ b\//- /' >> ${GITHUB_ENV}
+        echo "EOFMARKER" >> ${GITHUB_ENV}
+    - name: Print info
+      run: |
+        echo $COMMIT_MESSAGE
