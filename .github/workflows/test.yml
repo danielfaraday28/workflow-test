@@ -23,6 +23,7 @@ jobs:
         echo "Base sha: ${{ github.base_ref }}"
     - uses: actions/checkout@v4
       with:
+        fetch-depth: 2
         sparse-checkout: |
           packs/UILib
     - name: Prepare
